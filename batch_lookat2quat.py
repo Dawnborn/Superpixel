@@ -33,10 +33,10 @@ if __name__ == "__main__":
     scene_lists = os.listdir(scene_root)
     for scene_name in sorted(scene_lists):
         scene_path = os.path.join(scene_root,scene_name)
-        raw = np.loadtxt(os.path.join(scene_path,"cam.txt"),skiprows=1)
+        raw = np.loadtxt(os.path.join(scene_path,"cam0.txt"),skiprows=1)
         lookats = raw.reshape((-1,9))
         quatxyzs = np.zeros([len(lookats),7])
         for (id,lookat_mat) in enumerate(lookats):
             quatxyzs[id,:] = lookat2quat(lookat_mat)
-        quatxyzs_path = os.path.join(scene_path,"cam_poses.txt")
+        quatxyzs_path = os.path.join(scene_path,"cam_poses0.txt")
         np.savetxt(quatxyzs_path,quatxyzs,header="qw qx qy qz x y z")

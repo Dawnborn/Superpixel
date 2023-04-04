@@ -20,16 +20,21 @@ from tqdm import tqdm
 # %%
 print("#########################Generate superpixels")
 
-scene_root = "./data/formal_scenes/"
+# scene_root = "./data/formal_scenes/"
+scene_root = "/storage/user/lhao/hjp/ws_superpixel/data/leitest3/"
 hdr_fold = "hdr/"
 depth_fold = "depth/"
 normal_fold = "normal/"
-cluster_fold = "normalclusters/"
+# cluster_fold = "normalclusters/"
+# cluster_fold = "test200/"
+cluster_fold = "test200rgb/"
 
 # %%
 img_start = 0
 img_end = 1000
 img_step = 50 #!!!!
+# img_idx = list(range(img_start,img_end,img_step))
+img_idx = [5]
 
 numSegments = 200 #!!!!
 
@@ -49,13 +54,15 @@ for scene_name in scene_names:
     
     for id_img, img_dir in tqdm(enumerate(img_dirs)):
         
-        if id_img < img_start:
-            continue
+        # if id_img < img_start:
+        #     continue
         
-        if id_img >= img_end:
-            break      
+        # if id_img >= img_end:
+        #     break      
         
-        if not id_img % img_step == 0:
+        # if not id_img % img_step == 0:
+        #     continue
+        if not (id_img in img_idx):
             continue
         
         if img_dir.split(".")[-1]=="pfm":
@@ -63,7 +70,7 @@ for scene_name in scene_names:
         else:
             image = img_as_float(io.imread(scene_root+scene_name+folder+img_dir))
 
-        segments = slic(image, n_segments = numSegments, sigma = 3, compactness=1, max_size_factor=1)
+        segments = slic(image, n_segments = numSegments, sigma = 3, compactness = 1)
         # those look similar share the same envmap, either is really similar or they are robust to different envmaps
         
         numResult = len(set(segments.flatten()))
@@ -71,7 +78,7 @@ for scene_name in scene_names:
         for s in range(segments.min(), segments.max()+1):
             centers[s-1,:]=np.argwhere(segments==s).mean(axis=0)
         centers = centers.round()
-        # plt.imshow(mark_boundaries(image, segments))
+        plt.imshow(mark_boundaries(image, segments))
         
         plt.scatter(centers[:,1],centers[:,0],marker='o',color='r')
         cluster_path = scene_root + scene_name + cluster_fold
