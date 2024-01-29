@@ -22,6 +22,7 @@ print("#########################Generate superpixels")
 
 # scene_root = "./data/formal_scenes/"
 scene_root = "/storage/user/lhao/hjp/ws_superpixel/data/leitest3/"
+scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
 hdr_fold = "hdr/"
 depth_fold = "depth/"
 normal_fold = "normal/"

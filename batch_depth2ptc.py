@@ -233,6 +233,7 @@ output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc/"
 # output_folder = './output_cam_file/'
 
 depth_fold = "depth/"
+pfm_fold = "pfm/"
 
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -240,7 +241,7 @@ depth_scale = 1  # ??????????
 intrinsic = [577.8705679012345,577.8705679012345,320,240]
 
 TEST_ALL_UVS = True
-EVERY_K_POINT = 2
+EVERY_K_POINT = 20
 
 scene_names = os.listdir(scenes_root)
 
@@ -270,6 +271,7 @@ for scene_idx, scene_name in enumerate(scene_names):
     mykey = lambda x:int(x.split(".")[0].split("_")[1])
     
     depth_all_names = sorted(os.listdir(os.path.join(scene_path, depth_fold)),key=mykey)
+    pfm_all_names = sorted(os.listdir(os.path.join(scene_path, pfm_fold)),key=mykey)
     
     depth_prefix = depth_all_names[0].split('_')[0]
     depth_format = depth_all_names[0].split('.')[-1]
@@ -279,17 +281,20 @@ for scene_idx, scene_name in enumerate(scene_names):
         pts_all = np.empty((0,3))
 
     # center_all_names = ['bgrnormal_11.txt'] #!!!!!!
-    for depth_name in depth_all_names:
+    for depth_name,pfm_name in zip(depth_all_names,pfm_all_names):
 
         pose_idx = int(depth_name.split(".")[0].split("_")[1])
 
         # break
         depth_path = os.path.join(os.path.join(scene_path, depth_fold, depth_name))
+        pfm_path = os.path.join(os.path.join(scene_path, pfm_fold, pfm_name))
         
         if depth_path.split(".")[-1]=="png":
             depth_all = cv2.imread(depth_path,cv2.CV_16UC1)/5000.0
         else:
             depth_all = read_depthdata(depth_path)
+        
+        pfm_all = cv2.imread()
 
         pose = poses[pose_idx-1,:]
         print("center:{} with pose:{}".format(str(depth_name),str(pose)))

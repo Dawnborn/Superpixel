@@ -1,5 +1,6 @@
 # %%
 # Selectiong 2D points by superpixel
+# open3d37
 #
 # import the necessary packages
 from skimage.segmentation import slic,watershed
@@ -28,13 +29,16 @@ print("#########################Generate superpixels")
 # scene_root = "/storage/local/lhao/junpeng/chenglei_dataset/scene0370_02/nobunny/"
 # scene_root = "/storage/local/lhao/junpeng/chenglei_dataset/scene0370_02"
 # scene_root = "/storage/remote/atcremers95/lhao/junpeng/chenglei_dataset/"
-scene_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
+# scene_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
+scene_root = "/storage/user/lhao/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0370_02"
+scene_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/finetune_dataset"
+scene_root = "/home/wiss/lhao/storage/user/hjp/ws_superpixel/ws_optix/assets/ttt/tt/Scenes/xml/000scene0594_00"
 
 output_root = "/storage/user/lhao/hjp/ws_superpixel/output/"
 
-hdr_fold = "/cam/pfm/"
-depth_fold = "/cam/depth/"
-normal_fold = "/cam/normal/"
+hdr_fold = "/pfm/"
+depth_fold = "/depth/"
+normal_fold = "/normal/"
 
 # cluster_fold = "normalclusters/"
 # cluster_fold = "test200/"
@@ -44,6 +48,10 @@ normal_fold = "/cam/normal/"
 # cluster_fold = "longtest_new3/"
 # cluster_fold = "finetune_manual"
 cluster_fold = "finetune_full"
+cluster_fold = "finetune_full100"
+cluster_fold = "manual650_200"
+# cluster_fold = "normal_200"
+cluster_fold = "normal_200step30"
 
 
 segment_fold = cluster_fold+"_segments"
@@ -51,13 +59,15 @@ segment_fold = cluster_fold+"_segments"
 
 # %%
 img_start = 0
-img_end = 30
-img_step = 1 #!!!!
+img_end = 2000
+# img_step = 50 #!!!!
+img_step = 30
 img_idx = list(range(img_start,img_end,img_step))
 # img_idx = [0,36,63,88,98,152,179,238,282,298] # fine_tuned manual
 # img_idx = [3]
+# img_idx = [0,40,80,160,200,240,320,360,400,440,480,520,560,600,640]
 
-numSegments = 300 #!!!!
+numSegments = 200 #!!!!
 
 folder = normal_fold # the folder use to cluster, change it to normal or basecolor or ldr for now
         
@@ -66,11 +76,14 @@ mykey = lambda x:int(x.split(".")[0].split("_")[1])
 # scene_names = os.listdir(scene_root)
 # scene_names = ['2frame0370_02']
 # scene_names = ['300frame0370_02']
-scene_names = ['scene0551_00','scene0582_00','scene0594_00','scene0604_00']
+# scene_names = ['scene0551_00','scene0582_00','scene0594_00','scene0604_00']
+# scene_names = ["60frame0370_02"]
+scene_names = ["scene0582_00"]
+scene_names = ["addon"]
 
 for scene_name in scene_names:
     print("==================="+scene_name+"===================")
-    scene_name = scene_name + "/"
+    # scene_name = scene_name + "/"
     
     img_dirs = sorted(os.listdir(os.path.join(scene_root,scene_name+folder)),key=mykey)
     

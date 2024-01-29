@@ -220,6 +220,9 @@ print(sys.path)
 # scenes_root = "/storage/local/lhao/junpeng/chenglei_dataset/scene0370_02/nobunny/"
 # scenes_root = "/storage/remote/atcremers95/lhao/junpeng/chenglei_dataset/"
 scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset/"
+scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0370_02/"
+scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/finetune_dataset/"
+scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0594_00/"
 
 pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
@@ -239,6 +242,11 @@ pose_root = "./data/poses_per2frame/every2frame/"
 # output_root = "./output/longtest_new3/"
 output_root = "./output/finetune_manual/"
 output_root = "./output/finetune_full/"
+output_root = "./output/finetune_full100/"
+output_root = "./output/manual650/"
+output_root = "./output/manual650_200"
+output_root = "./output/manual650_200step30"
+
 
 # output_folder = './output_cam_file/'
 
@@ -252,10 +260,15 @@ output_root = "./output/finetune_full/"
 center_fold = "longtest_new3/"
 center_fold = "finetune_manual"
 center_fold = "finetune_full"
+center_fold = "finetune_full100"
+center_fold = "manual650"
+center_fold = "manual650_200"
+center_fold = "normal_200"
+center_fold = "normal_200step30"
 
 
-depth_fold = "cam/depth/"
-normal_fold = "cam/normal/"
+depth_fold = "depth/"
+normal_fold = "normal/"
 
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -276,26 +289,31 @@ scene_names = os.listdir(scenes_root)
 # scene_names = ["scene0370_02"]
 # scene_names = ["scene0704_01"]
 # scene_names = ["scene0066_00"]
-scene_names = ["300frame0370_02"]
-scene_names = ['scene0551_00','scene0582_00','scene0594_00','scene0604_00']
+# scene_names = ["300frame0370_02"]
+# scene_names = ['scene0551_00','scene0582_00','scene0594_00','scene0604_00']
+# scene_names = ["60frame0370_02"]
+scene_names = ["scene0582_00"]
+scene_names = ["addon"]
 
 # scene_idx = 0
 for scene_idx, scene_name in enumerate(scene_names):
     # scene_name = scene_name.rstrip()
     
-    scene_path = scenes_root + scene_name
+    scene_path = os.path.join(scenes_root, scene_name)
 
     # img poses
     # poses_path = os.path.join(pose_root, scene_name + '.txt')
-    poses_path = os.path.join(scene_path, "cam_poses.txt")
-    assert(os.path.exists(poses_path))
+    poses_path = os.path.join(scene_path, "cam_interpolated_poses.txt")
+    if not (os.path.exists(poses_path)):
+        import pdb
+        pdb.set_trace()
     # poses_path = 'haoang_process_results/' + scene_name + '.txt'
 
     # with open(poses_path) as f_poses:
     #     poses = f_poses.readlines()
     poses = np.loadtxt(poses_path)
 
-    output_folder = output_root + scene_name + '/'
+    output_folder = os.path.join(output_root, scene_name)
     # output_folder = scene_path
     
     if not os.path.exists(output_folder):
@@ -407,7 +425,9 @@ for scene_idx, scene_name in enumerate(scene_names):
     output_quats_mulView = np.zeros([len(pts_in_world_all_mulView),7])
     for id,lookat_mat in enumerate(pts_in_world_all_mulView):
         output_quats_mulView[id,:] = lookat2quat(lookat_mat)
-    np.savetxt(os.path.join(output_folder, scene_name+'_control_cam_pose.txt'), output_quats_mulView, header='# qw qx qy qz x y z') #!!!!
+    control_cam_pose_path = os.path.join(output_folder, scene_name+'_control_cam_pose.txt')
+    np.savetxt(control_cam_pose_path, output_quats_mulView, header='# qw qx qy qz x y z') #!!!!
+    print("control_cam_pose is written to {}!".format(control_cam_pose_path))
     
     with open(output_path_all_mulView, 'w') as f_output_path_all_mulView:
         num = pts_in_world_all_mulView.shape[0]
@@ -421,6 +441,7 @@ for scene_idx, scene_name in enumerate(scene_names):
                 pts_in_world_all_mulView[i][5]) + '\n')
             f_output_path_all_mulView.write(str(pts_in_world_all_mulView[i][6]) + ' ' + str(pts_in_world_all_mulView[i][7]) + ' ' + str(
                 pts_in_world_all_mulView[i][8]) + '\n')
+    print("control_cam is written to {}!".format(output_path_all_mulView))
     
     # np.savetxt(output_path_all_mulView, pts_in_world_all_mulView)
     # break
@@ -431,6 +452,6 @@ for scene_idx, scene_name in enumerate(scene_names):
 # np.savetxt("pts_all.txt",pts_all)
 # pts_all = np.loadtxt("pts_all.txt")
 if SAVE_ORIGINS:
-    np.savetxt(output_folder + scene_name+"origins.txt", pts_in_world_all_mulView[:,:3])
-    np.savetxt(output_folder + scene_name+"lookats.txt", pts_in_world_all_mulView[:,3:6])
+    np.savetxt(os.path.join(output_folder, scene_name+"origins.xyz"), pts_in_world_all_mulView[:,:3])
+    np.savetxt(os.path.join(output_folder, scene_name+"lookats.xyz"), pts_in_world_all_mulView[:,3:6])
 # %%

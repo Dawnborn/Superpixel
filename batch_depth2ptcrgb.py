@@ -1,5 +1,6 @@
 # %%
 # import the necessary packages
+# env: open3d37
 import cv2
 import open3d as o3d
 from skimage import io
@@ -276,6 +277,7 @@ print(sys.path)
 # scenes_root = "./data/leitest3/"
 # scenes_root = "./data/gaoming_dataset"
 scenes_root = "/storage/user/lhao/hjp/ws_superpixel/data/setup_ptc"
+scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
 
 # pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
@@ -293,8 +295,10 @@ output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc/"
 # output_folder = './output_cam_file/'
 
 depth_fold = "depth/"
+depth_fold = "cam/depth/"
 # pfm_fold = "pfm/"
 pfm_fold = "ldr/"
+pfm_fold = "cam/pfm/"
 
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -304,13 +308,20 @@ intrinsic = [577.8705679012345,577.8705679012345,320,240]
 TEST_ALL_UVS = True
 EVERY_K_POINT = 4
 USE_VIEW_DIR = True
-USE_LDR = True
+PFM2LDR = False
 
 scene_names = os.listdir(scenes_root)
 
 # scene_names = ["scene0370_02"]
 # scene_names = ["scene0704_01"]
 # scene_names = ["scene0418_00", "scene0467_00"]
+
+scene_names = ["scene0551_00","scene0582_00","scene0594_00","scene0604_00"]
+scene_names = ["scene0551_00"]
+scene_names = ["scene0582_00"]
+scene_names = ["scene0594_00"]
+scene_names = ["scene0604_00"]
+
 
 # scene_idx = 0
 for scene_idx, scene_name in enumerate(scene_names):
@@ -320,7 +331,7 @@ for scene_idx, scene_name in enumerate(scene_names):
 
     # img poses
     # poses_path = pose_root + scene_name + '.txt'
-    poses_path = os.path.join(scene_path,"cam_poses0.txt")
+    poses_path = os.path.join(scene_path,"cam_poses.txt")
 
     poses = np.loadtxt(poses_path)
 
@@ -368,7 +379,7 @@ for scene_idx, scene_name in enumerate(scene_names):
             # cv2.destroyAllWindows()
             print("pfm_all")
         
-        if USE_LDR and pfm_fold=="pfm/":
+        if PFM2LDR and pfm_fold=="pfm/":
             tonemapper = cv2.createTonemapReinhard()
             pfm_all = tonemapper.process(pfm_all)
             pfm_all = cv2.convertScaleAbs(pfm_all,alpha=(255.0/np.max(pfm_all)))
@@ -406,7 +417,7 @@ for scene_idx, scene_name in enumerate(scene_names):
         # break
     # break
     if TEST_ALL_UVS:
-        np.savetxt(os.path.join(output_folder,scene_name+'_xyzldrview_png_unchanged.xyz'), pts_all, header='#x y z')
+        np.savetxt(os.path.join(output_folder,scene_name+'_xyzhdrview_pfm.xyz'), pts_all, header='#x y z b g r vx vy vz')
         # continue
     
     # np.savetxt(output_path_all_mulView, pts_in_world_all_mulView)
