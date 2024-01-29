@@ -214,7 +214,8 @@ print(sys.path)
 
 # scenes_root = "./data/formal_scenes/"
 # scenes_root = "./data/leitest3/"
-scenes_root = "./data/gaoming_dataset"
+# scenes_root = "./data/gaoming_dataset"
+scenes_root = "/storage/user/lhao/hjp/ws_superpixel/data/setup_ptc"
 
 pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
@@ -226,7 +227,8 @@ pose_root = "./data/poses_per2frame/every2frame/"
 # output_root = "./output/test200plus/"
 # output_root = "./output/test200pluslift/"
 # output_root = "./output/test200pluslift5mm/"
-output_root = "./output/gaoming_dataset/"
+# output_root = "./output/gaoming_dataset/"
+output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc/"
 
 # output_folder = './output_cam_file/'
 
@@ -237,7 +239,8 @@ depth_scale = 1  # ??????????
 # intrinsic = [222.22, 222.22, 160, 120]
 intrinsic = [577.8705679012345,577.8705679012345,320,240]
 
-TEST_ALL_UVS = True 
+TEST_ALL_UVS = True
+EVERY_K_POINT = 2
 
 scene_names = os.listdir(scenes_root)
 
@@ -252,7 +255,8 @@ for scene_idx, scene_name in enumerate(scene_names):
     scene_path = os.path.join(scenes_root, scene_name)
 
     # img poses
-    poses_path = pose_root + scene_name + '.txt'
+    # poses_path = pose_root + scene_name + '.txt'
+    poses_path = os.path.join(scene_path,"cam_poses0.txt")
 
     poses = np.loadtxt(poses_path)
 
@@ -302,6 +306,10 @@ for scene_idx, scene_name in enumerate(scene_names):
         if TEST_ALL_UVS:
             pts_oneView = convert_depth_to_pcl(depth_all, intrinsic, depth_scale, R_c2w, t_c2w)
             # np.savetxt(os.path.join(output_folder,"pts_oneView.xyz"),pts_oneView)
+            keep_mask = np.zeros(pts_oneView.shape[0],dtype=bool)
+            keep_mask[::EVERY_K_POINT] = True
+            np.random.shuffle(keep_mask)
+            pts_oneView = pts_oneView[keep_mask]
             pts_all = np.append(pts_all, pts_oneView,axis=0)
             # continue
 

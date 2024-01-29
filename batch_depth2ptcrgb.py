@@ -1,5 +1,4 @@
 # %%
-# Convert 2D points to 3D points
 # import the necessary packages
 import cv2
 import open3d as o3d
@@ -150,6 +149,66 @@ def convert_depth_to_pcl_normal(depth_image, intrinsic, depth_scale, R_c2w, t_c2
     
     return pointcloud[::pts_per,:]
 
+def convert_depth_to_pcl_rgb(depth_image, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers=None, lift_depth=0.0, pts_per=1, rgb_image=None):
+    
+    fx = intrinsic[0]
+    fy = intrinsic[1]
+    cx = intrinsic[2]
+    cy = intrinsic[3]
+    
+    center_x = cx
+    center_y = cy
+
+    constant_x = 1 / fx
+    constant_y = 1 / fy
+
+    # pointcloud_xzyrgb_fields = [
+    #     PointField(name='x', offset=0, datatype=PointField.FLOAT32, count=1),
+    #     PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
+    #     PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
+    #     PointField(name='rgb', offset=12, datatype=PointField.UINT32, count=1)
+    # ]
+
+    vs = np.array(
+        [(v - center_x) * constant_x for v in range(0, depth_image.shape[1])])
+    us = np.array(
+        [(u - center_y) * constant_y for u in range(0, depth_image.shape[0])])
+
+    # Convert depth from mm to m.
+    depth_image = depth_image / depth_scale - lift_depth
+
+    x = np.multiply(depth_image, vs)
+    y = depth_image * us[:, np.newaxis]
+
+    stacked = np.ma.dstack((x, y, depth_image,rgb_image))
+    if not (super_pix_centers is None):
+        stacked = stacked[super_pix_centers[:,0],super_pix_centers[:,1]]
+    compressed = stacked.compressed()
+    
+    
+    pointcloud = compressed.reshape((int(compressed.shape[0] / 6), 6))
+
+    # pointcloud = np.hstack((pointcloud[:, 0:3],
+    #                         pack_bgr(*pointcloud.T[3:6])[:, None]))
+    # pointcloud = [[point[0], point[1], point[2], point[3]]
+    #               for point in pointcloud]
+
+    # pointcloud = pc2.create_cloud(Header(), pointcloud_xzyrgb_fields,
+    #                               pointcloud)
+    
+    H = np.eye(4,4)
+    H[:3,:3] = R_c2w
+    H[:3,3] = t_c2w
+    
+    pt = o3d.geometry.PointCloud()
+    pt.points = o3d.utility.Vector3dVector(pointcloud[:,:3])
+    pt = pt.transform(H)
+    points = np.asarray(pt.points)
+    pointcloud = np.hstack((points,pointcloud[:,3:6]))
+    
+    return pointcloud[::pts_per,:]
+
+
 def read_depthdata(depth_path):
     # load depth data and convert to 16UC1
     with open(depth_path,'rb') as f:
@@ -216,14 +275,10 @@ print(sys.path)
 # scenes_root = "./data/formal_scenes/"
 # scenes_root = "./data/leitest3/"
 # scenes_root = "./data/gaoming_dataset"
-# scenes_root = "./data/cam_xi/"
-# scenes_root = "/storage/local/lhao/junpeng/chenglei_dataset/scene0370_02/nobunny/"
-# scenes_root = "/storage/remote/atcremers95/lhao/junpeng/chenglei_dataset/"
-scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset/"
+scenes_root = "/storage/user/lhao/hjp/ws_superpixel/data/setup_ptc"
 
-pose_root = "./data/poses_per2frame/every2frame/"
+# pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
-# pose_root = "./data/cam_xi_poses/"
 
 # output_root = "./output/lookats_control_point_normal/"
 # output_root = "./output/lei_control_points3knormal/"
@@ -233,70 +288,43 @@ pose_root = "./data/poses_per2frame/every2frame/"
 # output_root = "./output/test200pluslift/"
 # output_root = "./output/test200pluslift5mm/"
 # output_root = "./output/gaoming_dataset/"
-# output_root = "./output/test2_300/"
-# output_root = "./output/longtest_new/
-# output_root = "./output/longtest_new2/"
-# output_root = "./output/longtest_new3/"
-output_root = "./output/finetune_manual/"
-output_root = "./output/finetune_full/"
+output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc/"
 
 # output_folder = './output_cam_file/'
 
-# scene_names_path = '/storage/user/lhao/hjp/ws_superpixel/haoang_control_pts/scene_names_demo.txt' # !!!!!!!!!!!!!!!!!!!!!!! TO adjust
-# center_fold = "testclusters/"
-# center_fold = "leiclusters/"
-# center_fold = "downright_cluster/"
-# center_fold = "test200rgblei/"
-# center_fold = "longtest_new/"
-# center_fold = "longtest_new2/"
-center_fold = "longtest_new3/"
-center_fold = "finetune_manual"
-center_fold = "finetune_full"
-
-
-depth_fold = "cam/depth/"
-normal_fold = "cam/normal/"
+depth_fold = "depth/"
+# pfm_fold = "pfm/"
+pfm_fold = "ldr/"
 
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # intrinsic = [222.22, 222.22, 160, 120]
-intrinsic = [574.540648625183,574.540648625183,320,240] # scene0307_02
-# intrinsic = [577.8705679012345,577.8705679012345,320,240]
+intrinsic = [577.8705679012345,577.8705679012345,320,240]
 
-# lift = 0.005 #!!!!!!
-# lift = 0.005
-lift = 0.005
-
-TEST_ALL_UVS = True 
-USE_WORLD_CAM = True # all cameras are set to the same orientation, as the world frame
-SAVE_ORIGINS = True
+TEST_ALL_UVS = True
+EVERY_K_POINT = 4
+USE_VIEW_DIR = True
+USE_LDR = True
 
 scene_names = os.listdir(scenes_root)
 
 # scene_names = ["scene0370_02"]
 # scene_names = ["scene0704_01"]
-# scene_names = ["scene0066_00"]
-scene_names = ["300frame0370_02"]
-scene_names = ['scene0551_00','scene0582_00','scene0594_00','scene0604_00']
+# scene_names = ["scene0418_00", "scene0467_00"]
 
 # scene_idx = 0
 for scene_idx, scene_name in enumerate(scene_names):
     # scene_name = scene_name.rstrip()
     
-    scene_path = scenes_root + scene_name
+    scene_path = os.path.join(scenes_root, scene_name)
 
     # img poses
-    # poses_path = os.path.join(pose_root, scene_name + '.txt')
-    poses_path = os.path.join(scene_path, "cam_poses.txt")
-    assert(os.path.exists(poses_path))
-    # poses_path = 'haoang_process_results/' + scene_name + '.txt'
+    # poses_path = pose_root + scene_name + '.txt'
+    poses_path = os.path.join(scene_path,"cam_poses0.txt")
 
-    # with open(poses_path) as f_poses:
-    #     poses = f_poses.readlines()
     poses = np.loadtxt(poses_path)
 
     output_folder = output_root + scene_name + '/'
-    # output_folder = scene_path
     
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -306,48 +334,47 @@ for scene_idx, scene_name in enumerate(scene_names):
     mykey = lambda x:int(x.split(".")[0].split("_")[1])
     
     depth_all_names = sorted(os.listdir(os.path.join(scene_path, depth_fold)),key=mykey)
-    center_all_names = sorted(os.listdir(os.path.join(scene_path, center_fold)),key=mykey)
-    normal_all_names = sorted(os.listdir(os.path.join(scene_path, normal_fold)),key=mykey)
+    pfm_all_names = sorted(os.listdir(os.path.join(scene_path, pfm_fold)),key=mykey)
     
     depth_prefix = depth_all_names[0].split('_')[0]
     depth_format = depth_all_names[0].split('.')[-1]
-    
-    normal_prefix = normal_all_names[0].split('_')[0]
 
     # pts_in_world_all_mulView = np.ones((len(depth_all_names),3),float)
     if TEST_ALL_UVS:
-        pts_all = np.empty((0,3))
+        pts_all = np.empty((0,6))
+        if USE_VIEW_DIR:
+            pts_all = np.empty((0,9))
 
     # center_all_names = ['bgrnormal_11.txt'] #!!!!!!
-    for center_name in center_all_names:
+    for depth_name,pfm_name in zip(depth_all_names,pfm_all_names):
 
-        pose_idx = int(center_name.split(".")[0].split("_")[1])
-
-        # depth_name = depth_all_names[pose_idx-1]
-        depth_name = depth_prefix+("_{}.".format(pose_idx))+depth_format
-
-        # normal_name = normal_all_names[pose_idx-1]
-        normal_name = normal_prefix+("_{}.pfm".format(pose_idx))
+        pose_idx = int(depth_name.split(".")[0].split("_")[1])
 
         # break
         depth_path = os.path.join(os.path.join(scene_path, depth_fold, depth_name))
-        
-        center_path = os.path.join(os.path.join(scene_path, center_fold, center_name))
-        
-        normal_path = os.path.join(os.path.join(scene_path, normal_fold, normal_name))
         
         if depth_path.split(".")[-1]=="png":
             depth_all = cv2.imread(depth_path,cv2.CV_16UC1)/5000.0
         else:
             depth_all = read_depthdata(depth_path)
+        
+        pfm_path = os.path.join(os.path.join(scene_path, pfm_fold, pfm_name))
+        if pfm_fold=="pfm/":
+            pfm_all = cv2.imread(pfm_path,cv2.IMREAD_UNCHANGED)
+        else:
+            pfm_all = cv2.imread(pfm_path,cv2.IMREAD_UNCHANGED)
+            # cv2.imshow("pfm",pfm_all)
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+            print("pfm_all")
+        
+        if USE_LDR and pfm_fold=="pfm/":
+            tonemapper = cv2.createTonemapReinhard()
+            pfm_all = tonemapper.process(pfm_all)
+            pfm_all = cv2.convertScaleAbs(pfm_all,alpha=(255.0/np.max(pfm_all)))
 
         pose = poses[pose_idx-1,:]
-        print("center:{} with pose:{}".format(str(center_name),str(pose)))
-        
-        if TEST_ALL_UVS:
-            # if (pose_idx != 10) and (pose_idx!=14): # !!!!
-            #     continue
-            print(pose)
+        print("center:{} with pose:{}".format(str(depth_name),str(pose)))
 
         q_c2w = [pose[1], pose[2], pose[3], pose[0]]
         q_c2w = np.array(q_c2w)
@@ -358,79 +385,31 @@ for scene_idx, scene_name in enumerate(scene_names):
         t_c2w = pose[4:7]
         t_c2w = np.array(t_c2w)
         
-        normals_c_oneView = cv2.imread(normal_path,cv2.IMREAD_UNCHANGED)
-        normals_c_oneView = 2*normals_c_oneView-1
-        # break
-        super_pix_centers = np.loadtxt(center_path,dtype=np.int32)
-        # break
-        
         if TEST_ALL_UVS:
-            pts_oneView = convert_depth_to_pcl(depth_all, intrinsic, depth_scale, R_c2w, t_c2w)
-            # np.savetxt(os.path.join(output_folder,"pts_oneView.txt"),pts_oneView)
-            pts_oneView = pts_oneView[::10,:]
+            pts_oneView = convert_depth_to_pcl_rgb(depth_all, intrinsic, depth_scale, R_c2w, t_c2w,rgb_image=pfm_all)
+            # np.savetxt(os.path.join(output_folder,"pts_oneView.xyz"),pts_oneView)
+            if USE_VIEW_DIR:
+                view_dir = pts_oneView[:,:3]-t_c2w
+                print(view_dir[0,:])
+                row_norm = np.linalg.norm(view_dir,axis=1)
+                view_dir = view_dir/row_norm[:,np.newaxis]
+                print(view_dir[0,:])
+                pts_oneView = np.hstack((pts_oneView,view_dir))
+            keep_mask = np.zeros(pts_oneView.shape[0],dtype=bool)
+            keep_mask[::EVERY_K_POINT] = True
+            np.random.shuffle(keep_mask)
+            pts_oneView = pts_oneView[keep_mask]
             pts_all = np.append(pts_all, pts_oneView,axis=0)
             # continue
-        
-        # origin_in_world_oneView = gen_local_map_in_world2(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers, lift=0, normal_img=normals_c_oneView)
-
-        # origin_in_world_oneView = convert_depth_to_pcl(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers, lift_depth=lift)
-        normals_c_oneView = normals_c_oneView[:,:,[2,1,0]]
-        normals_c_oneView[:,:,1] = -normals_c_oneView[:,:,1]
-        normals_c_oneView[:,:,2] = -normals_c_oneView[:,:,2]
-        origin_in_world_oneView = convert_depth_to_pcl_normal(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers, lift=lift,normal_image=normals_c_oneView)
-        # origin_in_world_oneView = convert_depth_to_pcl(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers=super_pix_centers, lift_depth=lift,pts_per=100)
-        np.savetxt(os.path.join(output_folder,"origin_in_world_oneView.txt"),origin_in_world_oneView)
-        if USE_WORLD_CAM:
-            lookat_in_world_oneView = origin_in_world_oneView + np.array([0,0,1])
-            up_vectors_oneView = np.zeros_like(origin_in_world_oneView)
-            up_vectors_oneView[:,1] = 1
-        else:
-            # lookat_in_world_oneView =  gen_local_map_in_world2(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers, lift=2*lift, normal_img=normals_c_oneView)
-            lookat_in_world_oneView = convert_depth_to_pcl(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, super_pix_centers, lift_depth=3*lift)
-            up_vectors_oneView = np.zeros_like(lookat_in_world_oneView)
-            up_vectors_oneView[:,2] = 1
-
-        pts_in_world_all_oneView = np.hstack([origin_in_world_oneView, lookat_in_world_oneView, up_vectors_oneView])
-
-        pts_in_world_all_mulView = np.append(pts_in_world_all_mulView, pts_in_world_all_oneView, axis=0)
 
         print('Complete pose ' + str(pose_idx) + '/' + str(len(depth_all_names)) + ', scene ' + str(scene_idx + 1) + '/' + str(len(scene_names)))
-
-        # pose_idx = pose_idx + 1
         # break
-    output_path_all_mulView = os.path.join(output_folder, scene_name+'_control_cam.txt')
     # break
     if TEST_ALL_UVS:
-        np.savetxt(os.path.join(output_folder,scene_name+'test_all_uvs.txt'),pts_all, header='#x y z')
+        np.savetxt(os.path.join(output_folder,scene_name+'_xyzldrview_png_unchanged.xyz'), pts_all, header='#x y z')
         # continue
-    
-    output_quats_mulView = np.zeros([len(pts_in_world_all_mulView),7])
-    for id,lookat_mat in enumerate(pts_in_world_all_mulView):
-        output_quats_mulView[id,:] = lookat2quat(lookat_mat)
-    np.savetxt(os.path.join(output_folder, scene_name+'_control_cam_pose.txt'), output_quats_mulView, header='# qw qx qy qz x y z') #!!!!
-    
-    with open(output_path_all_mulView, 'w') as f_output_path_all_mulView:
-        num = pts_in_world_all_mulView.shape[0]
-        f_output_path_all_mulView.write( str(num) + '\n')
-        for i in range(num):
-            # if not i%10==0:
-            #     continue
-            f_output_path_all_mulView.write(str(pts_in_world_all_mulView[i][0]) + ' ' + str(pts_in_world_all_mulView[i][1]) + ' ' + str(
-                pts_in_world_all_mulView[i][2]) + '\n')
-            f_output_path_all_mulView.write(str(pts_in_world_all_mulView[i][3]) + ' ' + str(pts_in_world_all_mulView[i][4]) + ' ' + str(
-                pts_in_world_all_mulView[i][5]) + '\n')
-            f_output_path_all_mulView.write(str(pts_in_world_all_mulView[i][6]) + ' ' + str(pts_in_world_all_mulView[i][7]) + ' ' + str(
-                pts_in_world_all_mulView[i][8]) + '\n')
     
     # np.savetxt(output_path_all_mulView, pts_in_world_all_mulView)
     # break
     print('Comelete Scene ' + str(scene_idx + 1) + '/' + str(len(scene_names)) )
     print('===================================================')
-
-# %%
-# np.savetxt("pts_all.txt",pts_all)
-# pts_all = np.loadtxt("pts_all.txt")
-if SAVE_ORIGINS:
-    np.savetxt(output_folder + scene_name+"origins.txt", pts_in_world_all_mulView[:,:3])
-    np.savetxt(output_folder + scene_name+"lookats.txt", pts_in_world_all_mulView[:,3:6])
-# %%

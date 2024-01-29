@@ -29,7 +29,8 @@ def lookat2quat(lookat_mat):
     return np.hstack([quat,origin])
 
 if __name__ == "__main__":
-    scene_root = "/storage/user/lhao/hjp/ws_superpixel/data/leitest3"
+    # scene_root = "/storage/user/lhao/hjp/ws_superpixel/data/leitest3"
+    scene_root = "/storage/user/lhao/hjp/ws_superpixel/data/setup_ptc"
     scene_lists = os.listdir(scene_root)
     for scene_name in sorted(scene_lists):
         scene_path = os.path.join(scene_root,scene_name)
