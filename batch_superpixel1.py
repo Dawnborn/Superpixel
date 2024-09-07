@@ -30,9 +30,12 @@ print("#########################Generate superpixels")
 # scene_root = "/storage/local/lhao/junpeng/chenglei_dataset/scene0370_02"
 # scene_root = "/storage/remote/atcremers95/lhao/junpeng/chenglei_dataset/"
 # scene_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
-scene_root = "/storage/user/lhao/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0370_02"
-scene_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/finetune_dataset"
-scene_root = "/home/wiss/lhao/storage/user/hjp/ws_superpixel/ws_optix/assets/ttt/tt/Scenes/xml/000scene0594_00"
+# scene_root = "/storage/user/lhao/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0370_02"
+# scene_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/finetune_dataset"
+# scene_root = "/home/wiss/lhao/storage/user/hjp/ws_superpixel/ws_optix/assets/ttt/tt/Scenes/xml/000scene0594_00"
+scene_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0604_00"
+scene_root = "/storage/user/lhao/hjp/ws_superpixel/ws_optix/assets/ttt/tt/Scenes/xml/000scene0643_00"
+scene_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0086_00"
 
 output_root = "/storage/user/lhao/hjp/ws_superpixel/output/"
 
@@ -52,7 +55,7 @@ cluster_fold = "finetune_full100"
 cluster_fold = "manual650_200"
 # cluster_fold = "normal_200"
 cluster_fold = "normal_200step30"
-
+cluster_fold = "normal_100step30"
 
 segment_fold = cluster_fold+"_segments"
 
@@ -67,7 +70,7 @@ img_idx = list(range(img_start,img_end,img_step))
 # img_idx = [3]
 # img_idx = [0,40,80,160,200,240,320,360,400,440,480,520,560,600,640]
 
-numSegments = 200 #!!!!
+numSegments = 100 #!!!!
 
 folder = normal_fold # the folder use to cluster, change it to normal or basecolor or ldr for now
         
@@ -80,6 +83,8 @@ mykey = lambda x:int(x.split(".")[0].split("_")[1])
 # scene_names = ["60frame0370_02"]
 scene_names = ["scene0582_00"]
 scene_names = ["addon"]
+scene_names = ["xi"]
+scene_names = ["cam_manual_interpolated"]
 
 for scene_name in scene_names:
     print("==================="+scene_name+"===================")
