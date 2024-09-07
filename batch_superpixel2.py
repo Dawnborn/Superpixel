@@ -219,10 +219,13 @@ print(sys.path)
 # scenes_root = "./data/cam_xi/"
 # scenes_root = "/storage/local/lhao/junpeng/chenglei_dataset/scene0370_02/nobunny/"
 # scenes_root = "/storage/remote/atcremers95/lhao/junpeng/chenglei_dataset/"
-scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset/"
-scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0370_02/"
-scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/finetune_dataset/"
-scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0594_00/"
+# scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset/"
+# scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0370_02/"
+# scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/finetune_dataset/"
+# scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0594_00/"
+# scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0604_00"
+scenes_root = "/storage/user/lhao/hjp/ws_superpixel/ws_optix/assets/ttt/tt/Scenes/xml/000scene0643_00"
+scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0086_00"
 
 pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
@@ -246,8 +249,7 @@ output_root = "./output/finetune_full100/"
 output_root = "./output/manual650/"
 output_root = "./output/manual650_200"
 output_root = "./output/manual650_200step30"
-
-
+output_root = "./output/manual650_100step30"
 # output_folder = './output_cam_file/'
 
 # scene_names_path = '/storage/user/lhao/hjp/ws_superpixel/haoang_control_pts/scene_names_demo.txt' # !!!!!!!!!!!!!!!!!!!!!!! TO adjust
@@ -265,6 +267,7 @@ center_fold = "manual650"
 center_fold = "manual650_200"
 center_fold = "normal_200"
 center_fold = "normal_200step30"
+center_fold = "normal_100step30"
 
 
 depth_fold = "depth/"
@@ -273,8 +276,8 @@ normal_fold = "normal/"
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # intrinsic = [222.22, 222.22, 160, 120]
-intrinsic = [574.540648625183,574.540648625183,320,240] # scene0307_02
-# intrinsic = [577.8705679012345,577.8705679012345,320,240]
+# intrinsic = [574.540648625183,574.540648625183,320,240] # scene0307_02
+intrinsic = [577.8705679012345,577.8705679012345,320,240]
 
 # lift = 0.005 #!!!!!!
 # lift = 0.005
@@ -292,8 +295,10 @@ scene_names = os.listdir(scenes_root)
 # scene_names = ["300frame0370_02"]
 # scene_names = ['scene0551_00','scene0582_00','scene0594_00','scene0604_00']
 # scene_names = ["60frame0370_02"]
-scene_names = ["scene0582_00"]
-scene_names = ["addon"]
+# scene_names = ["scene0582_00"]
+# scene_names = ["addon"]
+# scene_names = ["xi"]
+scene_names = ["cam_manual_interpolated"]
 
 # scene_idx = 0
 for scene_idx, scene_name in enumerate(scene_names):
@@ -303,7 +308,10 @@ for scene_idx, scene_name in enumerate(scene_names):
 
     # img poses
     # poses_path = os.path.join(pose_root, scene_name + '.txt')
-    poses_path = os.path.join(scene_path, "cam_interpolated_poses.txt")
+    # poses_path = os.path.join(scene_path, "scene0604_00_xi_poses_formatted.txt")
+    poses_path = "/storage/user/lhao/hjp/ws_superpixel/ws_optix/assets/ttt/tt/Scenes/xml/000scene0643_00/cam_manual_interpolated_poses_formatted.txt"
+    poses_path = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0086_00/cam_manual_interpolated/cam_manual_interpolated_poses_formatted.txt"
+
     if not (os.path.exists(poses_path)):
         import pdb
         pdb.set_trace()

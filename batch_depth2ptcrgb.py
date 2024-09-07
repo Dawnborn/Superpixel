@@ -278,6 +278,8 @@ print(sys.path)
 # scenes_root = "./data/gaoming_dataset"
 scenes_root = "/storage/user/lhao/hjp/ws_superpixel/data/setup_ptc"
 scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
+scenes_root = "/storage/user/lhao/hjp/ws_interiornet_stable/ws_optix/assets/ttt/tt/Scenes/xml"
+scenes_root = "/home/wiss/lhao/storage/user/hjp/ws_optix/assets/ttt/tt/Scenes/xml/000scene0086_00"
 
 # pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
@@ -291,14 +293,15 @@ scenes_root = "/storage/remote/atcremers95/lhao/junpeng/finetune_dataset"
 # output_root = "./output/test200pluslift5mm/"
 # output_root = "./output/gaoming_dataset/"
 output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc/"
+output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc_ours/"
+output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc_ours_test/"
 
 # output_folder = './output_cam_file/'
 
 depth_fold = "depth/"
-depth_fold = "cam/depth/"
-# pfm_fold = "pfm/"
-pfm_fold = "ldr/"
-pfm_fold = "cam/pfm/"
+# depth_fold = "cam/depth/"
+pfm_fold = "pfm/"
+# pfm_fold = "basecolor/"
 
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -321,7 +324,10 @@ scene_names = ["scene0551_00"]
 scene_names = ["scene0582_00"]
 scene_names = ["scene0594_00"]
 scene_names = ["scene0604_00"]
-
+scene_names = ["000scene0370_02","000scene0551_00","000scene0582_00","000scene0594_00","000scene0604_00"]
+# scene_names = ["000scene0551_00"]
+scene_names = ["000scene0643_00"]
+scene_names = ["cam"]
 
 # scene_idx = 0
 for scene_idx, scene_name in enumerate(scene_names):
@@ -331,7 +337,7 @@ for scene_idx, scene_name in enumerate(scene_names):
 
     # img poses
     # poses_path = pose_root + scene_name + '.txt'
-    poses_path = os.path.join(scene_path,"cam_poses.txt")
+    poses_path = os.path.join(scene_path,"cam_poses_formatted.txt")
 
     poses = np.loadtxt(poses_path)
 
@@ -373,7 +379,7 @@ for scene_idx, scene_name in enumerate(scene_names):
         if pfm_fold=="pfm/":
             pfm_all = cv2.imread(pfm_path,cv2.IMREAD_UNCHANGED)
         else:
-            pfm_all = cv2.imread(pfm_path,cv2.IMREAD_UNCHANGED)
+            pfm_all = cv2.imread(pfm_path)
             # cv2.imshow("pfm",pfm_all)
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
@@ -397,7 +403,7 @@ for scene_idx, scene_name in enumerate(scene_names):
         t_c2w = np.array(t_c2w)
         
         if TEST_ALL_UVS:
-            pts_oneView = convert_depth_to_pcl_rgb(depth_all, intrinsic, depth_scale, R_c2w, t_c2w,rgb_image=pfm_all)
+            pts_oneView = convert_depth_to_pcl_rgb(depth_all, intrinsic, depth_scale, R_c2w, t_c2w, rgb_image=pfm_all)
             # np.savetxt(os.path.join(output_folder,"pts_oneView.xyz"),pts_oneView)
             if USE_VIEW_DIR:
                 view_dir = pts_oneView[:,:3]-t_c2w

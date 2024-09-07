@@ -216,8 +216,9 @@ print(sys.path)
 # scenes_root = "./data/leitest3/"
 # scenes_root = "./data/gaoming_dataset"
 scenes_root = "/storage/user/lhao/hjp/ws_superpixel/data/setup_ptc"
+scenes_root = "/storage/user/lhao/hjp/ws_interiornet_stable/ws_optix/assets/ttt/tt/Scenes/xml"
 
-pose_root = "./data/poses_per2frame/every2frame/"
+# pose_root = "./data/poses_per2frame/every2frame/"
 # pose_root = "./data/leitest3pose/"
 
 # output_root = "./output/lookats_control_point_normal/"
@@ -228,12 +229,13 @@ pose_root = "./data/poses_per2frame/every2frame/"
 # output_root = "./output/test200pluslift/"
 # output_root = "./output/test200pluslift5mm/"
 # output_root = "./output/gaoming_dataset/"
-output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc/"
+output_root = "/storage/user/lhao/hjp/ws_superpixel/output/setup_ptc_ours/"
 
 # output_folder = './output_cam_file/'
 
 depth_fold = "depth/"
 pfm_fold = "pfm/"
+pfm_fold = "cam/ldr"
 
 depth_scale = 1  # ??????????
 # intrinsic = [577.591, 578.73, 318.905, 242.684] # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -249,6 +251,7 @@ scene_names = os.listdir(scenes_root)
 # scene_names = ["scene0704_01"]
 # scene_names = ["scene0418_00", "scene0467_00"]
 
+
 # scene_idx = 0
 for scene_idx, scene_name in enumerate(scene_names):
     # scene_name = scene_name.rstrip()
@@ -257,7 +260,7 @@ for scene_idx, scene_name in enumerate(scene_names):
 
     # img poses
     # poses_path = pose_root + scene_name + '.txt'
-    poses_path = os.path.join(scene_path,"cam_poses0.txt")
+    poses_path = os.path.join(scene_path,"cam_poses_formated.txt")
 
     poses = np.loadtxt(poses_path)
 
@@ -281,7 +284,7 @@ for scene_idx, scene_name in enumerate(scene_names):
         pts_all = np.empty((0,3))
 
     # center_all_names = ['bgrnormal_11.txt'] #!!!!!!
-    for depth_name,pfm_name in zip(depth_all_names,pfm_all_names):
+    for depth_name, pfm_name in zip(depth_all_names,pfm_all_names):
 
         pose_idx = int(depth_name.split(".")[0].split("_")[1])
 

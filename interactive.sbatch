@@ -2,7 +2,7 @@
 #SBATCH --job-name="superpxiel"
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=24
-#SBATCH --gres=gpu:0,VRAM:16G
+#SBATCH --gres=gpu:7,VRAM:12G
 #SBATCH --mem=32G
 #SBATCH --time=24:00:00
 #SBATCH --mail-user="ge32hij@mytum.de"
